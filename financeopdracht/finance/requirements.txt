@@ -1,4 +1,0 @@
-git+https://github.com/cs50/python-cs50
-Flask
-Flask-Session
-requests
