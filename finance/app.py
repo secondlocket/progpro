@@ -30,12 +30,15 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-
+"""
+routes
+"""
 @app.route("/")
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return apology("TODO")
+    user_id = session["user_id"]
+    return render_template("layout.html", message="WORK IN PROGRESS")
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -50,6 +53,47 @@ def buy():
 def history():
     """Show history of transactions"""
     return apology("TODO")
+
+
+@app.route("/register", methods = ["GET", "POST"])
+""" TODO
+check not returning 400 and blank page """
+def register():
+    if request.method == "POST":
+        """
+        when form is submitted via POST,
+        check for possible errors and insert
+        the new user into users table
+        """
+        username = request.form.get("username")
+        password1 = request.form.get("password")
+        password2 = request.form.get("confirmation")
+
+        if not username:
+            return apology("must provide username", 400)
+        if not password1:
+            return apology("must provide password", 400)
+        if not password2:
+            return apology("must confirm password", 400)
+
+        if password1 != password2:
+            return apology("passwords do not match", 400)
+
+        user = db.execute("SELECT * FROM users WHERE username = ?", username)
+        if len(user) != 0:
+            return apology("username already exists :(", 400)
+
+        hashedpw = generate_password_hash(password1)
+        new_id = db.execute("INSERT INTO users (username, hash) VALUES (?, ?)",
+            username,
+            hashedpw
+        )
+
+        session["user_id"] = new_id
+        return redirect("/login")
+
+    else:
+        return render_template("register.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -102,13 +146,12 @@ def logout():
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
 def quote():
-    """Get stock quote."""
-    return apology("TODO")
+    """ TODO
+    Get stock quote."""
+    if request.method == "POST":
 
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    """Register user"""
+    else:
+        return render_template("quote.html")
     return apology("TODO")
 
 
