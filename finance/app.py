@@ -1,5 +1,13 @@
 import os
 
+"""
+TODO:
+    /register (check no 400?)
+    /quote (make quote.html and quoted.html)
+    /buy (make buy.html)
+
+"""
+
 from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
@@ -42,10 +50,32 @@ def index():
 
 
 @app.route("/buy", methods=["GET", "POST"])
+""" TODO
+make buy.html, maak finance.db af
+"""
 @login_required
 def buy():
-    """Buy shares of stock"""
-    return apology("TODO")
+    symbol = request.form.get("symbol")
+    shares = request.form.get("shares")
+
+    # Checks
+    if not symbol:
+        return apology("must provide symbol", 400)
+    if symbol not in :
+        return apology("symbol not found", 400)
+    if shares < 0:
+        return apology("shares must be positive", 400)
+
+    # Submit the user's input via POST to /buy
+
+    info = lookup(symbol)
+
+    # Odds are you’ll want to SELECT how much cash
+    # the user currently has in users. (cash variable name)
+
+    if cash < price**********
+    
+    return render_template("")
 
 
 @app.route("/history")
@@ -144,12 +174,15 @@ def logout():
 
 
 @app.route("/quote", methods=["GET", "POST"])
+""" TODO
+make quote.html and quoted.html """
 @login_required
 def quote():
     """ TODO
     Get stock quote."""
     if request.method == "POST":
-
+        symbol = request.form.get("symbol")
+        return render_template("quoted.html")
     else:
         return render_template("quote.html")
     return apology("TODO")
