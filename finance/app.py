@@ -6,6 +6,9 @@ TODO:
     /quote (make quote.html and quoted.html)
     /buy (make buy.html)
 
+    maak finance af voor het weekend
+    maak books af voor volgende dinsdag
+
 """
 
 from cs50 import SQL
@@ -48,35 +51,38 @@ def index():
     user_id = session["user_id"]
     return render_template("layout.html", message="WORK IN PROGRESS")
 
-
-@app.route("/buy", methods=["GET", "POST"])
-""" TODO
-make buy.html, maak finance.db af
-"""
-@login_required
-def buy():
-    symbol = request.form.get("symbol")
-    shares = request.form.get("shares")
-
-    # Checks
-    if not symbol:
-        return apology("must provide symbol", 400)
-    if symbol not in :
-        return apology("symbol not found", 400)
-    if shares < 0:
-        return apology("shares must be positive", 400)
-
-    # Submit the user's input via POST to /buy
-
-    info = lookup(symbol)
-
-    # Odds are you’ll want to SELECT how much cash
-    # the user currently has in users. (cash variable name)
-
-    if cash < price**********
-    
-    return render_template("")
-
+#
+# @app.route("/buy", methods=["GET", "POST"])
+# @login_required
+# def buy():
+#     """
+#     TODO
+#     make buy.html, maak finance.db af
+#     """
+#     symbol = request.form.get("symbol")
+#     shares = request.form.get("shares")
+#
+#     # Checks
+#     if not symbol:
+#         return apology("must provide symbol", 400)
+#
+#     if symbol not in :
+#         return apology("symbol not found", 400)
+#     if shares < 0:
+#         return apology("shares must be positive", 400)
+#
+#     # Submit the user's input via POST to /buy
+#
+#     info = lookup(symbol)
+#
+#     # Odds are you’ll want to SELECT how much cash
+#     # the user currently has in users. (cash variable name)
+#
+#     """
+#     if cash < price**********
+#
+#     return render_template("")
+#     """
 
 @app.route("/history")
 @login_required
@@ -86,9 +92,9 @@ def history():
 
 
 @app.route("/register", methods = ["GET", "POST"])
-""" TODO
-check not returning 400 and blank page """
 def register():
+    """ TODO
+    check not returning 400 and blank page """
     if request.method == "POST":
         """
         when form is submitted via POST,
@@ -174,9 +180,9 @@ def logout():
 
 
 @app.route("/quote", methods=["GET", "POST"])
-""" TODO
-make quote.html and quoted.html """
 @login_required
+# TODO
+# make quote.html and quoted.html
 def quote():
     """ TODO
     Get stock quote."""
