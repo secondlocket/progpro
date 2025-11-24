@@ -3,23 +3,21 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Quote
+    Stock Quote
 {% endblock %}
 
 {% block main %}
-    <form action="/quote" method="get">
-        <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text" required>
-        </div>
+    <div class="card mx-auto">
+      <div class="card-body text-center">
+        <h6 class="card-title">Stock: {{ name }} ({{ symbol.upper() }})</h6>
 
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="Password" type="password" required>
-        </div>
+        <p class="card-text mt-3">
+          Current Price: $ {{ price }} (USD)
+        </p>
 
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" id="confirmation" name="confirmation" placeholder="Confirm password" type="password" required>
-        </div>
+        <a href="/quote" class="btn btn-primary mt-3">Other Stock</a>
+        <a href="/" class="btn btn-primary mt-3">Home</a>
+      </div>
+    </div>
 
-        <button class="btn btn-primary" type="submit">Register</button>
-    </form>
 {% endblock %}

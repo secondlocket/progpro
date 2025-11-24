@@ -1,25 +1,15 @@
-# Before enter data
-
 {% extends "layout.html" %}
 
 {% block title %}
-    Quote
+    Stock Quote
 {% endblock %}
 
 {% block main %}
     <form action="/quote" method="post">
         <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text" required>
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="symbol" name="symbol" placeholder="'NFLX'" type="text" required>
         </div>
 
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="Password" type="password" required>
-        </div>
-
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" id="confirmation" name="confirmation" placeholder="Confirm password" type="password" required>
-        </div>
-
-        <button class="btn btn-primary" type="submit">Register</button>
+        <button class="btn btn-primary" type="submit">Get Quote</button>
     </form>
 {% endblock %}
