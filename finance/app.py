@@ -1,4 +1,10 @@
 import os
+from cs50 import SQL
+from flask import Flask, flash, redirect, render_template, request, session
+from flask_session import Session
+from tempfile import mkdtemp
+from werkzeug.security import check_password_hash, generate_password_hash
+from helpers import apology, login_required, lookup, usd
 
 """
 TODO:
@@ -10,14 +16,6 @@ TODO:
     maak books af voor volgende dinsdag
 
 """
-
-from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session
-from flask_session import Session
-from tempfile import mkdtemp
-from werkzeug.security import check_password_hash, generate_password_hash
-
-from helpers import apology, login_required, lookup, usd
 
 # Configure application
 app = Flask(__name__)
@@ -51,38 +49,38 @@ def index():
     user_id = session["user_id"]
     return render_template("layout.html", message="WORK IN PROGRESS")
 
-#
-# @app.route("/buy", methods=["GET", "POST"])
-# @login_required
-# def buy():
-#     """
-#     TODO
-#     make buy.html, maak finance.db af
-#     """
-#     symbol = request.form.get("symbol")
-#     shares = request.form.get("shares")
-#
-#     # Checks
-#     if not symbol:
-#         return apology("must provide symbol", 400)
-#
-#     if symbol not in :
-#         return apology("symbol not found", 400)
-#     if shares < 0:
-#         return apology("shares must be positive", 400)
-#
-#     # Submit the user's input via POST to /buy
-#
-#     info = lookup(symbol)
-#
-#     # Odds are you’ll want to SELECT how much cash
-#     # the user currently has in users. (cash variable name)
-#
-#     """
-#     if cash < price**********
-#
-#     return render_template("")
-#     """
+
+@app.route("/buy", methods=["GET", "POST"])
+@login_required
+def buy():
+    """
+    TODO
+    make buy.html, maak finance.db af
+    """
+    symbol = request.form.get("symbol")
+    shares = request.form.get("shares")
+
+    # Checks
+    if not symbol:
+        return apology("must provide symbol", 400)
+
+    if symbol not in :
+        return apology("symbol not found", 400)
+    if shares < 0:
+        return apology("shares must be positive", 400)
+
+    # Submit the user's input via POST to /buy
+
+    info = lookup(symbol)
+
+    # Odds are you’ll want to SELECT how much cash
+    # the user currently has in users. (cash variable name)
+
+    """
+    if cash < price**********
+
+    return render_template("")
+    """
 
 @app.route("/history")
 @login_required
@@ -187,8 +185,15 @@ def quote():
     """ TODO
     Get stock quote."""
     if request.method == "POST":
+        name = request.form.get("name")
+        price = request.form.get("price")
         symbol = request.form.get("symbol")
-        return render_template("quoted.html")
+
+        return render_template("quoted.html",
+            name = name,
+            price = price,
+            symbol = symbol
+        )
     else:
         return render_template("quote.html")
     return apology("TODO")
