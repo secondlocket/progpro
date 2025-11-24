@@ -206,6 +206,8 @@ def buy():
             return apology("must provide valid symbol")
         else:
             price = dict["price"]
+
+        shares = int(shares)
         if shares < 0:
             return apology("shares must be positive")
 
@@ -218,7 +220,7 @@ def buy():
         cash = rows[0]["cash"]
 
         if cash < total_cost:
-            return apology("not enough cash")
+            return apology("not enough credit")
 
         updated_cash = cash - total_cost
 
