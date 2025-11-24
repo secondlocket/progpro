@@ -39,6 +39,7 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
+
 """
 routes
 """
@@ -47,17 +48,42 @@ routes
 def index():
     """Show portfolio of stocks"""
     user_id = session["user_id"]
-    return render_template("layout.html", message="WORK IN PROGRESS")
+    portfolio = []
+    total_stocks_value = 0
 
+    rows = db.execute("SELECT cash FROM users WHERE id = ?", user_id)
+    cash = rows[0]["cash"]
 
-@app.route("/history")
-@login_required
-def history():
-    """Show history of transactions"""
-    return apology("TODO")
+    stocks = db.execute("""
+        SELECT symbol, SUM(shares) as total_shares
+        FROM transactions
+        WHERE user_id = ?
+        GROUP BY symbol
+        HAVING total_shares > 0
+    """, user_id)
 
+    for stock in stocks:
+        stock_info = lookup(stock["symbol"])
+        value = stock_info["price"] * stock["total_shares"]
+        total_stocks_value += value
 
-@app.route("/register", methods = ["GET", "POST"])
+        portfolio.append({
+            "symbol": stock["symbol"],
+            "name": stock_info["name"],
+            "shares": stock["total_shares"],
+            "price": stock_info["price"],
+            "total": value
+        })
+
+    grand_total = cash + total_stocks_value
+
+    return render_template("index.html",
+        portfolio=portfolio,
+        cash=cash,
+        grand_total=grand_total
+    )
+
+@app.route("/register", methods=["GET", "POST"])
 def register():
     """ TODO
     check not returning 400 and blank page """
@@ -97,7 +123,6 @@ def register():
     else:
         return render_template("register.html")
 
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
@@ -133,7 +158,6 @@ def login():
     else:
         return render_template("login.html")
 
-
 @app.route("/logout")
 def logout():
     """Log user out"""
@@ -143,7 +167,6 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
-
 
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
@@ -157,8 +180,8 @@ def quote():
         if dict is None:
             return apology("Invalid symbol")
         else:
-            name = dict['name']
-            price = dict['price']
+            name = dict["name"]
+            price = dict["price"]
 
             return render_template("quoted.html",
                 name = name,
@@ -182,7 +205,7 @@ def buy():
         if dict is None:
             return apology("must provide valid symbol")
         else:
-            price = dict['price']
+            price = dict["price"]
         if shares < 0:
             return apology("shares must be positive")
 
@@ -216,3 +239,9 @@ def sell():
     """Sell shares of stock"""
 
     return apology("")
+
+@app.route("/history")
+@login_required
+def history():
+    """Show history of transactions"""
+    return apology("TODO")
