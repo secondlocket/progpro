@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, session
 from flask_session import Session
+from models import *
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -22,6 +23,8 @@ app.config["SESSION_TYPE"] = "filesystem"
 
 Session(app)
 
+def main():
+    db.create_all()  # Create data table sql from database csv (from video)
 
 @app.route("/")
 def index():
@@ -36,3 +39,8 @@ def logout():
 @app.route("/search")
 def search():
     return render_template("search.html")
+
+
+if __name__ == "__main__":
+    with app.app_context():
+        main()

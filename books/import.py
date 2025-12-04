@@ -10,15 +10,10 @@ columns those tables should have, and how they should relate
 to one another. Run this program by running python3 import.py
 to import the books into your database, and submit this program
 with the rest of your project code.
+
+
+Zet books.csv om naar een SQL database
 """
-from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
-
-class Book(db.Model):
-    __tablename__ = "books"
-    # Search needs to access ISBN, title or author
-    isbn = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String, nullable=False)
-    author = db.Column(db.String, nullable=False)
-    year = db.Column(db.Integer, nullable=True)
+from models import *
+from app import *
