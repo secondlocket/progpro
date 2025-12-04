@@ -63,15 +63,15 @@ def index():
     """, user_id)
 
     for stock in stocks:
-        stock_info = lookup(stock["symbol"])
-        value = stock_info["price"] * stock["total_shares"]
+        dict = lookup(stock["symbol"])
+        value = dict["price"] * stock["total_shares"]
         total_stocks_value += value
 
         portfolio.append({
             "symbol": stock["symbol"],
-            "name": stock_info["name"],
+            "name": dict["name"],
             "shares": stock["total_shares"],
-            "price": stock_info["price"],
+            "price": dict["price"],
             "total": value
         })
 
@@ -208,7 +208,7 @@ def buy():
             price = dict["price"]
 
         shares = int(shares)
-        if shares < 0:
+        if shares <= 0:
             return apology("shares must be positive")
 
         total_cost = price * shares
@@ -239,8 +239,71 @@ def buy():
 @login_required
 def sell():
     """Sell shares of stock"""
+    user_id = session["user_id"]
 
-    return apology("")
+    if request.method == "POST":
+        symbol = request.form.get("symbol")
+        shares = request.form.get("shares")
+
+        dict = lookup(symbol)
+
+        if not symbol:
+            return apology("must select stock")
+        if not shares:
+            return apology("must select shares")
+
+        shares = int(shares)
+        if dict is None:
+            return apology("must provide valid symbol")
+        if shares <= 0:
+            return apology("shares must be positive")
+
+        user_shares = db.execute("""
+            SELECT SUM(shares) as total_shares
+            FROM transactions
+            WHERE user_id = ? AND symbol = ?
+            GROUP BY symbol
+            """,
+            user_id,
+            symbol
+        )
+
+        if not user_shares or user_shares[0]["total_shares"] <= 0:
+            return apology("you don't own this stock")
+
+        if shares > user_shares[0]["total_shares"]:
+            return apology("not enough shares")
+
+        if not dict:
+            return apology("invalid symbol")
+
+        price = dict["price"]
+        total_profit = price * shares
+
+        db.execute("UPDATE users SET cash = cash + ? WHERE id = ?",
+            total_profit,
+            user_id
+        )
+        db.execute("INSERT INTO transactions (user_id, symbol, shares, price) VALUES (?, ?, ?, ?)",
+        user_id,
+        symbol,
+        -shares,
+        price
+    )
+
+        return redirect("/")
+    else:
+        stocks = db.execute("""
+            SELECT symbol
+            FROM transactions
+            WHERE user_id = ?
+            GROUP BY symbol
+            HAVING SUM(shares) > 0
+            """, user_id
+        )
+
+        return render_template("sell.html", stocks=stocks)
+    return apology("GET/POST niet aangeroepen bij sell")
 
 @app.route("/history")
 @login_required

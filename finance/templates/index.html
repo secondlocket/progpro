@@ -30,7 +30,11 @@
                 <td>{{ cash | usd }}</td>
             </tr>
             <tr>
-                <td colspan="4" class="text-end fw-bold">GRAND TOTAL</td>
+                <td colspan="4" class="text-end fw-bold">Cash Available: </td>
+                <td class="fw-bold">{{ cash | usd }}</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="text-end fw-bold">Total Value in Account: </td>
                 <td class="fw-bold">{{ grand_total | usd }}</td>
             </tr>
         </tbody>
