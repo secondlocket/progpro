@@ -1,19 +1,25 @@
-"""
-Provided for you in this project is a file called books.csv,
-which is a spreadsheet in CSV format of 5000 different books.
-Each one has an ISBN number, a title, an author, and a
-publication year. In a Python file called import.py separate
-from your web application, write a program that will take
-the books and import them into your PostgreSQL database. You
-will first need to decide what table(s) to create, what
-columns those tables should have, and how they should relate
-to one another. Run this program by running python3 import.py
-to import the books into your database, and submit this program
-with the rest of your project code.
-
-
-Zet books.csv om naar een SQL database
-"""
-
-from models import *
+import csv
+import os
+from flask import Flask
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+from models import Book
 from app import *
+
+engine = create_engine(os.getenv("DATABASE_URL"))
+db = scoped_session(sessionmaker(bind=engine))
+
+def main():
+    with open("books.csv", encoding="utf-8") as f:
+        reader = csv.reader(f)
+
+        next(reader)
+
+        for isbn, title, author, year in reader:
+            book = Book(isbn=isbn, title=title, author=author, year=year)
+            db.add(book)
+        db.commit()
+
+if __name__ == "__main__":
+    with app.app_context():
+        main()

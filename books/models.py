@@ -3,7 +3,7 @@ Make Book class
 """
 
 from flask_sqlalchemy import SQLAlchemy
-
+from import import import
 
 
 db = SQLAlchemy()
