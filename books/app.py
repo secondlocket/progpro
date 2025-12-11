@@ -1,10 +1,12 @@
 import os
 
-from flask import Flask, session
+from flask import Flask, session, render_template
 from flask_session import Session
 from models import *
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from from werkzeug.security import generate_password_hash
+from helpers import apology, login_required
 
 app = Flask(__name__)
 
@@ -12,6 +14,7 @@ app = Flask(__name__)
 if not os.getenv("DATABASE_URL"):
     raise RuntimeError("DATABASE_URL is not set")
 
+# Database configuration
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
@@ -21,9 +24,9 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+# Ensure responses aren't cached
 @app.after_request
 def after_request(response):
-    """Ensure responses aren't cached"""
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
@@ -32,12 +35,56 @@ def after_request(response):
 def main():
     db.create_all()  # Create data table sql from database csv (from video)
 
+# Routes
 @app.route("/")
+@login_required
 def index():
-    return "Project 1: TODO"
+    """Show books reviewed"""
+    books = Book.query.all()
+    portfolio = []
 
-@app.route("/login")
+    for book in books:
+        """print books out"""
+        portfolio.append({
+            "isbn": book.isbn,
+            "title": book.title,
+            "author": book.author,
+            "year": book.year
+        })
+
+    return render_template(
+        "index.html",
+        portfolio=portfolio,
+        total_books=len(books)
+    )
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
+    session.clear()
+
+    if request.method == "POST":
+        if not request.form.get("username"):
+            return apology("must provide username", code=403)
+        elif not request.form.get("password"):
+            return apology("must provide password", code=403)
+
+        # Query database for username
+        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+
+        # Ensure username exists and password is correct
+        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+            return apology("invalid username and/or password", code=403)
+
+        # Remember which user has logged in
+        session["user_id"] = rows[0]["id"]
+
+        # Redirect user to home page
+        return redirect("/")
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+        return render_template("login.html")
+
 
 @app.route("/logout")
 def logout():
@@ -45,6 +92,36 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        username = request.form.get("username")
+        password1 = request.form.get("password")
+        password2 = request.form.get("confirmation")
+
+        if not username:
+            return apology("must provide username")
+        if not password1:
+            return apology("must provide password")
+        if not password2:
+            return apology("must confirm password")
+
+        if password1 != password2:
+            return apology("passwords do not match")
+
+        user = Users.query.filter_by(username=username).first()
+        if user:
+            return apology("username already exists")
+
+        hashedpw = generate_password_hash(password1)
+
+        new_user = User(username=username, hash=hashedpw)
+        db.session.add(new_user)
+        db.session.commit()
+
+        session["user_id"] = new_user.id
+
+        return redirect("/login")
+
+    else:
+        return render_template("register.html")
 
 @app.route("/search")
 def search():
