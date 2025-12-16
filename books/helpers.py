@@ -1,4 +1,5 @@
-import os
+from functools import wraps
+from flask import session, redirect, render_template
 
 def login_required(f):
     """
@@ -26,3 +27,8 @@ def apology(message, code=400):
             s = s.replace(old, new)
         return s
     return render_template("apology.html", top=code, bottom=escape(message)), code
+
+def checklogin():
+    if session.get("user_id") != None:
+        return True
+    return False

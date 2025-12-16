@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, session, render_template
+from flask import Flask, session, render_template, request+
 from flask_session import Session
 from models import *
 from sqlalchemy import create_engine
@@ -14,15 +14,16 @@ app = Flask(__name__)
 if not os.getenv("DATABASE_URL"):
     raise RuntimeError("DATABASE_URL is not set")
 
-# Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db.init_app(app)
+
 
 # Configure session to use filesystem
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+
+engine = create_engine(os.getenv("DATABASE_URL"))
+db = scoped_session(sessionmaker(bind=engine))
+
 
 # Ensure responses aren't cached
 @app.after_request
@@ -120,13 +121,35 @@ def register():
     else:
         return render_template("register.html")
 
-@app.route("/search")
+@app.route("/search", methods=["GET", "POST"])
 def search():
     if request.method == "POST":
-        type == request.form.get("type")
-        input == request.form.get("field")
+        input = request.form.get("input")
+        search_key = f"%{input}%"
 
+        isbn_query = None
+        try:
+            isbn_query = int(input)
+        except ValueError:
+            pass
 
+        if isbn_query:
+            books = Book.query.filter(
+                db.or_(
+                    Book.isbn==isbn_query,
+                    Book.title.ilike(search_key),
+                    Book.author.ilike(search_key)
+                )
+            ).all()
+        else:
+            books = Book.query.filter(
+                db.or_(
+                    Book.title.ilike(search_key),
+                    Book.author.ilike(search_key)
+                )
+            ).all()
+
+        return render_template("search.html", books=books)
     return render_template("search.html")
 
 @app.route("/review", methods=["GET", "POST"])
@@ -137,6 +160,21 @@ def review():
     if request.method == "GET":
 
     return render_template("review.html")
+
+@app.route("/book/<int:isbn>", methods=["GET"])
+def book(isbn):
+    book = Book.query.filter_by(isbn==isbn).first()
+    response = requests.get("https://openlibrary.org/api/books?bibkeys=ISBN:9780980200447&jscmd=details&format=json")
+    data = response.json()
+    print(data)
+
+    if book is None:
+        return render_template(
+            "apology.html",
+            message="Book not found",
+            code=404
+        )
+    return render_template("book.html")
 
 if __name__ == "__main__":
     with app.app_context():
