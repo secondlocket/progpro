@@ -4,7 +4,6 @@ Make Book class
 
 from flask_sqlalchemy import SQLAlchemy
 
-
 db = SQLAlchemy()
 
 class Book(db.Model):
@@ -16,11 +15,13 @@ class Book(db.Model):
     year = db.Column(db.Integer, nullable=True)
 
 class User(db.Model):
+    __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
     hash = db.Column(db.String, nullable=False)
 
 class Review(db.Model):
+    __tablename__ = "reviews"
     id = db.Column(db.Integer, primary_key=True)
     author = db.Column(db.String, nullable=False)
     stars = db.Column(db.Integer, nullable=False)

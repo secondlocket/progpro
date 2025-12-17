@@ -1,12 +1,12 @@
 import os
+import requests
 
-from flask import Flask, session, render_template, request+
+from flask import Flask, session, render_template, request, redirect
 from flask_session import Session
-from models import *
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
+from models import db, User, Book
 from helpers import apology, login_required
+
 
 app = Flask(__name__)
 
@@ -15,15 +15,16 @@ if not os.getenv("DATABASE_URL"):
     raise RuntimeError("DATABASE_URL is not set")
 
 
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 
 # Configure session to use filesystem
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
+
+db.init_app(app)
 Session(app)
-
-engine = create_engine(os.getenv("DATABASE_URL"))
-db = scoped_session(sessionmaker(bind=engine))
-
 
 # Ensure responses aren't cached
 @app.after_request
@@ -32,9 +33,6 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
-
-def main():
-    db.create_all()  # Create data table sql from database csv (from video)
 
 # Routes
 @app.route("/")
@@ -65,14 +63,17 @@ def login():
 
     if request.method == "POST":
 
-        if not request.form.get("username"):
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if not username:
             return apology("must provide username", code=403)
-        elif not request.form.get("password"):
+        elif not password:
             return apology("must provide password", code=403)
 
         user = User.query.filter_by(username=username).first()
 
-        if user is None or not check_password_hash(user.hash, password)
+        if user is None or not check_password_hash(user.hash, password):
             return apology("invalid username and/or password", 403)
 
         session["user_id"] = user.id
@@ -104,7 +105,7 @@ def register():
         if password1 != password2:
             return apology("passwords do not match")
 
-        user = Users.query.filter_by(username=username).first()
+        user = User.query.filter_by(username=username).first()
         if user:
             return apology("username already exists")
 
@@ -133,10 +134,10 @@ def search():
         except ValueError:
             pass
 
-        if isbn_query:
+        if isbn_query:  # If integer can look also for numbers in titles
             books = Book.query.filter(
                 db.or_(
-                    Book.isbn==isbn_query,
+                    Book.isbn == isbn_query,
                     Book.title.ilike(search_key),
                     Book.author.ilike(search_key)
                 )
@@ -152,7 +153,9 @@ def search():
         return render_template("search.html", books=books)
     return render_template("search.html")
 
+
 @app.route("/review", methods=["GET", "POST"])
+@login_required
 def review():
     if request.method == "POST":
         # post review
@@ -161,22 +164,27 @@ def review():
 
     return render_template("review.html")
 
+
 @app.route("/book/<int:isbn>", methods=["GET"])
 def book(isbn):
-    book = Book.query.filter_by(isbn==isbn).first()
-    response = requests.get("https://openlibrary.org/api/books?bibkeys=ISBN:9780980200447&jscmd=details&format=json")
-    data = response.json()
-    print(data)
-
+    book = Book.query.filter_by(isbn=isbn).first()
     if book is None:
         return render_template(
             "apology.html",
             message="Book not found",
             code=404
         )
-    return render_template("book.html")
+
+    value = book.isbn
+    size = "M"
+    cover = requests.get(f"https://covers.openlibrary.org/b/$ISBN/${value}-${size}.jpg?default=false")
+
+    response = requests.get(f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&jscmd=details&format=json")
+    data = response.json()
+    description = data[f"ISBN:{isbn}"]["details"]["description"]
+
+
+    return render_template("book.html", book=book, cover=cover, description=description)
 
 if __name__ == "__main__":
-    with app.app_context():
-        main()
     app.run(debug=True)
